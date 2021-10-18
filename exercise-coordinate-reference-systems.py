@@ -25,27 +25,27 @@
 # | We have
 # |
 # | 1. Tracking records of 11 purple matins in migration. They carry wireless
-# | devices and record the position of the bird with timestamps.
+# | devices that send the positions of the bird with timestamps.
 # |
-# | 2. Map (= Boundary info) of the protection areas in South America.
+# | 2. Map (= Boundary info) of the protected areas in South America.
 # |
 # | 3. General world map with the country borders, etc.
 # |
 
-# | ## 3. Coordinate Reference System (CRS)
+# | ## 3. Coordinate Reference System 
 # |
-# | Coordinate Reference System (CRS) tells the axes
-# | of the positional data stored in GeoDataFrame.
+# | Coordinate Reference System (CRS) tells how the axes are set for 
+# | the positional data stored in a GeoDataFrame.
 # | CRS specifies where the coordinate origin (0, 0) is,
-# | what the axes (e.g. northing and easting) are,
-# | what the unit is (feet, meters, kilo-meters).
+# | which directions the axes point to (e.g. northing and easting),
+# | what the unit of the numbers is (feet, meters, kilo-meters).
 # | When we manipulate one GeoDataFrame with another, for instance,
-# | to calculate intersections, both GeoDataFrame must have the same
-# | CRS.
+# | to calculate intersections, make sure both GeoDataFrame have 
+# | the same CRS.
 # |
 # | ### CRS most often used
 # |
-# | We need to know at least following three CRS.
+# | We need to know at least following three.
 # |
 # | 1. [__epgs: 4326__](https://epsg.io/4326)
 # | Usual latitude and longitude (in this order).
@@ -58,9 +58,8 @@
 # | (e.g. X=918447.648154, Y=6234705.18923)
 # |
 # | 3. [__epgs: 2272__](https://epsg.io/2272)
-# | Often used  in US and Canada. Origin is somewhere on the
+# | Often used in US and Canada. Origin is somewhere on the
 # | south edge of Victoria Island in Canada. Unit is foot.
-# | https:
 # |
 # | Additionally,
 # | 4. [__epgs: 2263__](https://epsg.io/2263)
@@ -79,7 +78,7 @@
 # |
 # | 2. After a GeoDataFrame is created, specify the coordinate reference system.
 # |
-# | The code snippet is as follow.s
+# | The code snippet is as follows.
 # |
 # |```
 # |# Create lists of latitude and longitude.
@@ -130,8 +129,8 @@ if not Path(DATA_DIR).exists():
         zip_ref.extractall('.')
     os.chdir(CWD)
 
-# | Some household stuff. Change `pandas`' options so that we can see
-# | whole DataFrame without skipping the middle.
+# | Some housekeeping stuff. Change `pandas`' options so that we can see
+# | whole DataFrame without skipping the lines.
 
 pd.options.display.max_rows = 999
 pd.options.display.max_columns = 99
@@ -155,15 +154,14 @@ def embed_plot(fig, file_name):
 def show_on_browser(m, file_name):
     '''
     m   : folium Map object
-#    CWD : string. Current working directory, e.g. "/User/meg/git6/kaggle/"
     Do not miss the trailing '/'
     '''
-#   file_name=str(uuid.uuid4())+'.html'
-#    file_name = m.__name__+'_b.html'
     m.save(file_name)
-#    url = 'file://'+CWD+file_name
     url = 'file://'+file_name
     webbrowser.open(url)
+
+
+def style_function(x): return {'fillColor': 'coral', 'stroke': False}
 
 # | Read the data of purple martin's seasonal migration.
 
@@ -172,17 +170,17 @@ birds_dir = "../input/geospatial-learn-course-data/"
 birds_df = pd.read_csv(birds_dir + "purple_martin.csv",
                        parse_dates=['timestamp'])
 
-# | With `parse_dates`. `timestamp` column will be returned as `datetime64` object.
+# | With `parse_dates`. `timestamp` column will be returned as `datetime64`.
 
 print(birds_df.info())
 
 # | Without `parse_dates`. `timestamp` column will be returned as
-# | `object` object(=string).
+# | `object` (=string).
 
 birds_no_parse_df = pd.read_csv(birds_dir + "purple_martin.csv")
 print(birds_no_parse_df.info())
 
-# | Check the data how many independent birds are recorded.
+# | Check the data how many independent birds in the record.
 
 birds_df['tag-local-identifier'].unique()
 birds_df['tag-local-identifier'].nunique()
@@ -195,7 +193,7 @@ birds_df.groupby('tag-local-identifier').count()['timestamp']
 # |
 # | 1. Specify how to make `geometry` column. In this case 'location-long'
 # | (=longitude) and 'location-lat' (=latitude) columns will be used to
-# | make `geometry`.
+# | create `geometry`.
 # |
 # | 2. Specify that CRS is EPSG 4326, i.e., standard latitude and longitude.
 
@@ -256,10 +254,12 @@ for i_g, (n, g) in enumerate(birds.groupby('tag-local-identifier')):
                              fill=True).add_to(m_1) for i, r in g.iterrows()]
 # -
 embed_map(m_1, 'm_1.html')
+
 # -
 show_on_browser(m_1, CWD+'m_1b.html')
+
 # -
-# | To extract the staring points, do the following (we do not use them here).
+# | To extract the starting points, do the following (we do not use them here).
 
 start_df = birds.groupby(
     'tag-local-identifier')['geometry'].apply(list).apply(lambda x: x[0]).reset_index()
@@ -273,21 +273,22 @@ end_df = birds.groupby(
 end_gdf = gpd.GeoDataFrame(end_df, geometry=end_df['geometry'])
 end_gdf.crs = {"init": 'epsg:4326'}
 
-# | Before we check how the birds winter-residences
+# | Before we check how the birds' winter-residences
 # | overlap with the protected areas, we will quickly
-# | see how much fraction of the lands in the South
+# | see how much fraction of the lands in South
 # | America is designated as protected area. The relevant columns are
 # |
 # | * `REP_M_AREA` : Marine area in square kilometers.
 # | * `REP_AREA` : Area in square kilometers.
 
-# | The table attribute is available on downloading the data.
+# | The table attribute is available on downloading of the data. 
+# | The documents are found in `./doc` directory.
 
 protected_areas[['REP_AREA', 'REP_M_AREA']]
 
 # | There are somehow 5 areas out of 4748 registered areas where `REP_AREA`
 # | is smaller than `REP_M_AREA`.
-# | The differneces are small, though, and we will use them as they are.
+# | The differences are small, though, and we will use them as they are.
 protected_areas.shape
 protected_areas.loc[(protected_areas['REP_AREA']
                      - protected_areas['REP_M_AREA'] < 0),
@@ -296,34 +297,32 @@ protected_areas.loc[(protected_areas['REP_AREA']
 # | Check CRS.
 protected_areas.crs
 
-# | Convert the crs of `protected_areas`
+# | Convert the CRS of `protected_areas`
 # | to [EPSG 3035](https://spatialreference.org/ref/epsg/etrs89-etrs-laea/).
-# | This is eqivalent to ETRS89 with the 'Lambert' projection, and
+# | This is equivalent to ETRS 89 with the 'Lambert' projection, and
 # | is a [equal area](http://crs.bkg.bund.de/crseu/crs/eu-description.php?crs_id=Y0VUUlM4OS1MQUVB)
-# | CRS. Show only the protection areas on the land, but not on the ocean (no MARINE area).
+# | CRS. Show only the protection areas on the land, but not on the ocean (no 'MARINE' area).
 
 protected_areas_on_land = protected_areas[protected_areas['MARINE'] != '2'].reset_index(
     drop=True)
 
 # | Check if there is any records outside South America in `protected_areas`
-# | by plotting the areas.
+# | by plotting them.
 
 
-def style_function(x): return {'fillColor': 'coral', 'stroke': False}
-
-
-# m_2 = folium.Map(location=center, tiles='Stamen Toner', zoom_start=zoom)
 m_2 = folium.Map(location=center, zoom_start=zoom)
-folium.GeoJson(data=protected_areas.__geo_interface__).add_to(m_2)
+folium.GeoJson(data=protected_areas.__geo_interface__,
+               style_function=style_function).add_to(m_2)
 
 # -
 embed_map(m_2, 'm_2.html')
+
 # -
 show_on_browser(m_2, CWD+'m_2b.html')
 
-# | `tiles` parameter in Map specifies the type of map to lay underneath.
+# | `tiles` parameter in `Map` specifies the type of the map to lay underneath.
 # | Here 'Stamen Toner' is used to save the memory.
-# | Other choices, that do not require API keys to download map data are
+# | Other choices, that do not require API keys to download the map data are
 # |
 # | - OpenStreetMap
 # | - Mapbox Bright
@@ -339,7 +338,7 @@ print(f'\033[33mtotal protected area \033[31m{total_protected_area:.4}\
 # | Now calculate the whole area of the South American continent. Make sure
 # | to convert the CRS to epsg 3035. As the unit of epsg 3035 is meters, divide
 # | the area 1km<sup>2</sup> = 10<sup>6</sup> m<sup>2</sup> to convert the unit
-# | to km<sup/2</sup>.a
+# | to km<sup/2</sup>.
 south_america = world[world['continent'] ==
                       'South America'].reset_index(drop=True)
 total_area = south_america.to_crs(epsg=3035)['geometry'].area.sum() / 10**6
@@ -347,7 +346,7 @@ p_frac = total_protected_area / total_area
 print(
     f'\033[33mProtected land fraction in south america \033[31m{p_frac:.3}\033[0m')
 
-# | Here is the final task. Visualize following three,
+# | Here is the final task. Visualize following three all together.
 # |
 # | 1. Map of American continents (North America and South America combined)
 # | 2. Plot the migration paths of the 11 birds, and
@@ -356,9 +355,6 @@ print(
 # | Tell if the birds really spend the winter in or near these sanctuaries.
 # | Is the presence of the protected areas really provide the winter habitats
 # | for the birds?
-
-
-def style_function(x): return {'fillColor': 'coral', 'stroke': False}
 
 
 m_3 = folium.Map(location=center, tiles='Stamen Terrain', zoom_start=zoom)
@@ -379,28 +375,29 @@ for i_g, (n, g) in enumerate(birds.groupby('tag-local-identifier')):
                              fill=True).add_to(m_3) for i, r in g.iterrows()]
 # -
 embed_map(m_3, 'm_3.html')
+
 # -
 show_on_browser(m_3, CWD+'m_3b.html')
 
 # |  ------------------------------------------
-# | Qualitative observations of the map are as following.
+# | Qualitative observations of the map are as follows.
 # |
 # | 1. Purple martin seem to stop near the edges of the protected areas, rather
-# |   than the middle of them. If we use a bit of imagination, the birds would
+# |   than in the middle of them. If we use a bit of imagination, the birds would
 # |   like to
 # |   rest in the protected area, as soon as they arrive, or would like to
 # |   have the last stop at its edge before starting a long stretch of
 # |  the next flight.
 # |
-# | 2. There are few protected area where the paths of the purple margins converge
+# | 2. There are few protected area where the paths of different purple martins converge
 # |   (e.g. the one near Humaita), although their paths are widely separated at
-# |   the beginning. These areas are probably most valuable as the birds apparently
-# |   strive to the area intentionally.
+# |   the beginning. These areas are probably most valuable sanctuaries as the birds apparently
+# |   strive to the sites intentionally.
 # |
-# | 3. Purple martin spends their winter at the southern-east half of
-# |  the Amazon Rainforest
-# |  in relatively concentrated manner (in particular in comparison with
-# |  their northern residence.
+# | 3. Purple martin spend their winter at the southern-east half of
+# |  the Amazon Rainforest 
+# |  in a relatively concentrated manner (in particular in comparison with
+# |  their northern residence).
 # |  From there to the south, the protected areas obviously  become much smaller,
 # |  fewer, and sparser. Looking at the residence of the birds, it is most beneficial
 # |  to create more protected areas at the southeast of Amazon to extend
@@ -408,12 +405,13 @@ show_on_browser(m_3, CWD+'m_3b.html')
 # |
 # | ------------------------------------------------------
 # |
-# | Let us quickly look at which countries in the South America have the
+# | Let us quickly look at which countries in South America have the
 # | largest fraction of the protected area with respect to their whole territory.
 # | We use `overlap` methods of `geopandas` geometry. The fractions of the
 # | protected areas can be taken
 # | as the indies how these countries are supportive for the
-# | protection of wildlife.
+# | protection of the wildlife.
+
 p_area = []  # protected area of the country
 t_area = []  # total area of the country
 f_area = []  # fraction of protected are
@@ -494,15 +492,15 @@ south_america[south_america['name'] == 'Brazil']['protected_area_total'].values[
 # |    areas in the ocean, but they are not included here.
 # |
 # | 2. Among 13 countries in South America, only three (Venezuela,
-# |    Brazil Chile) exceeds the average fraction of the protected area
+# |    Brazil, Chile) exceed the average fraction of the protected area
 # |    (0.31)
 # |
 # | 3. In particular, Venezuela boasts the largest fraction of the
-# |    protected area in spite of the relatively small area of the country.
+# |    protected area in spite of their relatively small area of the whole country.
 # |    The data stems from the year 2019.
 # |
 # | 4. More than half (55%) of the protected area
-# |    (in area as opposed to in number)
+# |    (in area, as opposed to in number)
 # |    in South America is located in Brazil.
 # |
 # | 5. The fraction of the protected area in Argentina,
@@ -559,7 +557,7 @@ south_america[south_america['name'] == 'Brazil']['protected_area_total'].values[
 # | - Jupyter Notebook on my laptop
 # | - Jupyter Notebook on Kaggle platform
 # |
-# | In terms of speed of code development, VS Code is the sole choice.
+# | In terms of the speed of coding, VS Code is the sole choice.
 # | However, when it comes to the infrastructure, like
 # | getting a hint in coding, checking the solution, and getting
 # | the certificate, there is no other choice than using Jupyter
@@ -575,7 +573,7 @@ south_america[south_america['name'] == 'Brazil']['protected_area_total'].values[
 # | to have `folium` visualization while using VS Code. A short function
 # | `show_on_browser` was written so that I can see the visualization
 # | on the local browser seamlessly. The jupyter notebooks were converted
-# | to plain Python script by `nbconvert`.
+# | to plain Python script by `nbconvert` package.
 # |
 # |```
 # |# Install nbconvert
@@ -583,34 +581,34 @@ south_america[south_america['name'] == 'Brazil']['protected_area_total'].values[
 # |
 # |# Convert Jupyter Notebook 'ex_1.ipynb' to 'ex_1.py'.
 # |# 'script means the command convert the input to python script.
-# |Jupyter nbconvert - -to script ex_1.ipynb
+# |jupyter nbconvert --to script ex_1.ipynb
 # |```
 
 # | 6. __Converting Python script back to Jupyter Notebook__<br>
-# | After editing, and testing the code part on VS Code, I would like to
+# | After editing, and testing the code on VS Code, I would like to
 # | convert it back to Jupyter Notebook to post them on GitHub.
 # | I also would like to touch up the markdown part of the notebook.
 # | There are choices:
 # |
 # | * Finish touching up markdown on VS Code, then convert it to Notebook
-# | * Convert the script to Notebook, and ginish touching up markdown on Jupyter.
+# | * Convert the script to Notebook, and finish touching up markdown on Jupyter.
 # |
 # | First option was difficult because it is not easy to check the formatted markdown
-# |    while you are working plain Python script on VS Code.
+# | while you are working plain Python script on VS Code.
 # |
 # | Second option also difficult. I cannot edit a long code fast enough on GUI-based
-# |     platform.
+# | platform.
 # |
-# | The final solution I took (not perfectly satisfied) is to use either VS Code
+# | The final solution I took (not perfectly satisfied, though) is to use either VS Code
 # | or Emacs (my preference) to edit a plain Python code, and time to time,
-# | check the formatted markdown with equivalent Notebook code. For the conversion
+# | check the formatted markdown with equivalent Notebook code. For the quick conversion
 # | of *.py to *.ipynb, the choices are
 # |
 # | * jupytext
 # | * p2j
 # | * py2nb
 # |
-# | each requires preparing  markdown-part  in *.py different way.
+# | each requires preparing  markdown-part  in *.py differently.
 # | For instance, in `p2j` all lines starting with `#` are taken as
 # | markdown, while `py2nb` with `# |`. Drawbacks in editing markdown
 # | as comment text in a plain python script are
@@ -619,7 +617,7 @@ south_america[south_america['name'] == 'Brazil']['protected_area_total'].values[
 # | * no automatic justification of text
 # | * no spell check
 # |
-# | `py2nb` was chosen because with `py2nb` it is more straightforward
+# | `py2nb` was chosen because with `py2nb`, it is more straightforward
 # | than other two to use markdown syntax in the comment text.
 # |
 # |```
