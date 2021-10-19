@@ -42,7 +42,7 @@ infrastructure to the birds.
 └── requirements.txt
 ```
 
-* HTML files are made by `folium` package to vizualize geospatial data.
+* HTML files are made by `folium` package to visualize geospatial data.
 * doc files contains table infos of the data, `protected_areas`.
 
 ------------------------------------------------------------------
